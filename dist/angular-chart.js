@@ -89,6 +89,7 @@
         restrict: 'CA',
         scope: {
           data: '=?',
+          previousPeriodData: '=?',
           labels: '=?',
           options: '=?',
           series: '=?',
@@ -100,6 +101,7 @@
           hover: '=?',
 
           chartData: '=?',
+          chartPreviousPeriodData: '=?',
           chartLabels: '=?',
           chartOptions: '=?',
           chartSeries: '=?',
@@ -107,6 +109,7 @@
           chartLegend: '@',
           chartClick: '=?',
           chartHover: '=?'
+
         },
         link: function (scope, elem/*, attrs */) {
           var chart, container = document.createElement('div');
@@ -116,7 +119,7 @@
 
           if (usingExcanvas) window.G_vmlCanvasManager.initElement(elem[0]);
 
-          ['data', 'labels', 'options', 'series', 'colours', 'legend', 'click', 'hover'].forEach(deprecated);
+          ['data', 'previousPeriodData', 'labels', 'options', 'series', 'colours', 'legend', 'click', 'hover'].forEach(deprecated);
           function aliasVar (fromName, toName) {
             scope.$watch(fromName, function (newVal) {
               if (typeof newVal === 'undefined') return;
@@ -126,6 +129,7 @@
           /* provide backward compatibility to "old" directive names, by
            * having an alias point from the new names to the old names. */
           aliasVar('chartData', 'data');
+          aliasVar('chartPreviousPeriodData', 'previousPeriodData');
           aliasVar('chartLabels', 'labels');
           aliasVar('chartOptions', 'options');
           aliasVar('chartSeries', 'series');
@@ -133,6 +137,7 @@
           aliasVar('chartLegend', 'legend');
           aliasVar('chartClick', 'click');
           aliasVar('chartHover', 'hover');
+          aliasVar('chartPreviousPeriod');
 
           // Order of setting "watch" matter
 
@@ -151,6 +156,7 @@
 
           scope.$watch('series', resetChart, true);
           scope.$watch('labels', resetChart, true);
+          scope.$watch('previousPeriodData', resetChart, true);
           scope.$watch('options', resetChart, true);
           scope.$watch('colours', resetChart, true);
 
@@ -189,8 +195,8 @@
             scope.colours = getColours(type, scope);
             var cvs = elem[0], ctx = cvs.getContext('2d');
             var data = Array.isArray(scope.data[0]) ?
-              getDataSets(scope.labels, scope.data, scope.series || [], scope.colours) :
-              getData(scope.labels, scope.data, scope.colours);
+              getDataSets(scope.previousPeriodData, scope.labels, scope.data, scope.series || [], scope.colours) :
+              getData(scope.previousPeriodData, scope.labels, scope.data, scope.colours);
             var options = angular.extend({}, ChartJs.getOptions(type), scope.options);
             chart = new ChartJs.Chart(ctx)[type](data, options);
             scope.$emit('create', chart);
@@ -300,8 +306,9 @@
       return [r, g, b];
     }
 
-    function getDataSets (labels, data, series, colours) {
+    function getDataSets (previousPeriodData, labels, data, series, colours) {
       return {
+        previousPeriodData: previousPeriodData,
         labels: labels,
         datasets: data.map(function (item, i) {
           return angular.extend({}, colours[i], {
@@ -312,9 +319,10 @@
       };
     }
 
-    function getData (labels, data, colours) {
+    function getData (previousPeriodData, labels, data, colours) {
       return labels.map(function (label, i) {
         return angular.extend({}, colours[i], {
+          previousPeriodData: previousPeriodData,
           label: label,
           value: data[i],
           color: colours[i].strokeColor,
