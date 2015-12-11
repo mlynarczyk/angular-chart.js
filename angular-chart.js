@@ -90,6 +90,7 @@
         scope: {
           data: '=?',
           previousPeriodData: '=?',
+          hasCumulativeValues: '=?',
           labels: '=?',
           options: '=?',
           series: '=?',
@@ -102,6 +103,7 @@
 
           chartData: '=?',
           chartPreviousPeriodData: '=?',
+          chartHasCumulativeValues: '=?',
           chartLabels: '=?',
           chartOptions: '=?',
           chartSeries: '=?',
@@ -119,7 +121,7 @@
 
           if (usingExcanvas) window.G_vmlCanvasManager.initElement(elem[0]);
 
-          ['data', 'previousPeriodData', 'labels', 'options', 'series', 'colours', 'legend', 'click', 'hover'].forEach(deprecated);
+          ['data', 'previousPeriodData', 'hasCumulativeValues', 'labels', 'options', 'series', 'colours', 'legend', 'click', 'hover'].forEach(deprecated);
           function aliasVar (fromName, toName) {
             scope.$watch(fromName, function (newVal) {
               if (typeof newVal === 'undefined') return;
@@ -130,6 +132,7 @@
            * having an alias point from the new names to the old names. */
           aliasVar('chartData', 'data');
           aliasVar('chartPreviousPeriodData', 'previousPeriodData');
+          aliasVar('chartHasCumulativeValues', 'hasCumulativeValues');
           aliasVar('chartLabels', 'labels');
           aliasVar('chartOptions', 'options');
           aliasVar('chartSeries', 'series');
@@ -137,7 +140,6 @@
           aliasVar('chartLegend', 'legend');
           aliasVar('chartClick', 'click');
           aliasVar('chartHover', 'hover');
-          aliasVar('chartPreviousPeriod');
 
           // Order of setting "watch" matter
 
@@ -157,6 +159,7 @@
           scope.$watch('series', resetChart, true);
           scope.$watch('labels', resetChart, true);
           scope.$watch('previousPeriodData', resetChart, true);
+          scope.$watch('hasCumulativeValues', resetChart, true);
           scope.$watch('options', resetChart, true);
           scope.$watch('colours', resetChart, true);
 
@@ -194,9 +197,14 @@
             scope.getColour = typeof scope.getColour === 'function' ? scope.getColour : getRandomColour;
             scope.colours = getColours(type, scope);
             var cvs = elem[0], ctx = cvs.getContext('2d');
-            var data = Array.isArray(scope.data[0]) ?
-              getDataSets(scope.previousPeriodData, scope.labels, scope.data, scope.series || [], scope.colours) :
-              getData(scope.previousPeriodData, scope.labels, scope.data, scope.colours);
+
+            var data;
+            if (Array.isArray(scope.data[0])) {
+              data = getDataSets(scope.hasCumulativeData, scope.previousPeriodData, scope.labels, scope.data, scope.series || [], scope.colours);
+            } else {
+              data = getData(scope.hasCumulativeData, scope.previousPeriodData, scope.labels, scope.data, scope.colours);
+            }
+
             var options = angular.extend({}, ChartJs.getOptions(type), scope.options);
             chart = new ChartJs.Chart(ctx)[type](data, options);
             scope.$emit('create', chart);
@@ -306,8 +314,9 @@
       return [r, g, b];
     }
 
-    function getDataSets (previousPeriodData, labels, data, series, colours) {
+    function getDataSets (hasCumulativeData, previousPeriodData, labels, data, series, colours) {
       return {
+        hasCumulativeData: hasCumulativeData,
         previousPeriodData: previousPeriodData,
         labels: labels,
         datasets: data.map(function (item, i) {
@@ -319,9 +328,10 @@
       };
     }
 
-    function getData (previousPeriodData, labels, data, colours) {
+    function getData (hasCumulativeData, previousPeriodData, labels, data, colours) {
       return labels.map(function (label, i) {
         return angular.extend({}, colours[i], {
+          hasCumulativeData: hasCumulativeData,
           previousPeriodData: previousPeriodData,
           label: label,
           value: data[i],
