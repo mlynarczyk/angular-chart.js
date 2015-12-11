@@ -90,7 +90,7 @@
         scope: {
           data: '=?',
           previousPeriodData: '=?',
-          hasCumulativeValues: '=?',
+          hasCumulativeData: '=?',
           labels: '=?',
           options: '=?',
           series: '=?',
@@ -103,7 +103,7 @@
 
           chartData: '=?',
           chartPreviousPeriodData: '=?',
-          chartHasCumulativeValues: '=?',
+          chartHasCumulativeData: '=?',
           chartLabels: '=?',
           chartOptions: '=?',
           chartSeries: '=?',
@@ -121,7 +121,7 @@
 
           if (usingExcanvas) window.G_vmlCanvasManager.initElement(elem[0]);
 
-          ['data', 'previousPeriodData', 'hasCumulativeValues', 'labels', 'options', 'series', 'colours', 'legend', 'click', 'hover'].forEach(deprecated);
+          ['data', 'previousPeriodData', 'hasCumulativeData', 'labels', 'options', 'series', 'colours', 'legend', 'click', 'hover'].forEach(deprecated);
           function aliasVar (fromName, toName) {
             scope.$watch(fromName, function (newVal) {
               if (typeof newVal === 'undefined') return;
@@ -132,7 +132,7 @@
            * having an alias point from the new names to the old names. */
           aliasVar('chartData', 'data');
           aliasVar('chartPreviousPeriodData', 'previousPeriodData');
-          aliasVar('chartHasCumulativeValues', 'hasCumulativeValues');
+          aliasVar('chartHasCumulativeData', 'hasCumulativeData');
           aliasVar('chartLabels', 'labels');
           aliasVar('chartOptions', 'options');
           aliasVar('chartSeries', 'series');
@@ -159,7 +159,7 @@
           scope.$watch('series', resetChart, true);
           scope.$watch('labels', resetChart, true);
           scope.$watch('previousPeriodData', resetChart, true);
-          scope.$watch('hasCumulativeValues', resetChart, true);
+          scope.$watch('hasCumulativeData', resetChart, true);
           scope.$watch('options', resetChart, true);
           scope.$watch('colours', resetChart, true);
 
